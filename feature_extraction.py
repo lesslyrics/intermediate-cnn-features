@@ -38,7 +38,10 @@ def feature_extraction_videos(model, cores, batch_sz, video_list, output_path):
         video_list: list of video to extract features
         output_path: path to store video features
     """
+    #open('video_list', encoding = "ISO-8859-1")
+    #videos = {i: video.strip() for i, video in enumerate(open(video_list, encoding="latin-1").readlines())}
     videos = {i: video.strip() for i, video in enumerate(open(video_list).readlines())}
+
     print('\nNumber of videos: ', len(videos))
     print('Storage directory: ', output_path)
     print('CPU cores: ', cores)
@@ -49,9 +52,12 @@ def feature_extraction_videos(model, cores, batch_sz, video_list, output_path):
     pool = Pool(cores)
     future_videos = dict()
     output_list = []
-    pbar = tqdm(lrange(np.max(videos.keys()) + 1), mininterval=1.0, unit='videos')
+    print('KEYS', list(videos.keys()))
+    pbar = tqdm(lrange(np.max(list(videos.keys())) + 1), mininterval=1.0, unit='videos')
     for video in pbar:
+        print('VIDEO', videos[video], os.path.exists(videos[video]) )
         if os.path.exists(videos[video]):
+            print('TRUE:', videos[video])
             video_name = os.path.splitext(os.path.basename(videos[video]))[0]
             if video not in future_videos:
                 video_tensor = load_video(videos[video], model.desired_size)
@@ -61,7 +67,7 @@ def feature_extraction_videos(model, cores, batch_sz, video_list, output_path):
 
             # load videos in parallel
             for _ in lrange(cores - len(future_videos)):
-                next_video = np.max(future_videos.keys()) + 1 \
+                next_video = np.max(list(future_videos.keys())) + 1 \
                     if len(future_videos) else video + 1
 
                 if next_video in videos and \
@@ -69,7 +75,7 @@ def feature_extraction_videos(model, cores, batch_sz, video_list, output_path):
                         os.path.exists(videos[next_video]):
                     future_videos[next_video] = pool.apply_async(load_video,
                                                                  args=[videos[next_video], model.desired_size])
-
+            print('FEATURES1 ')
             # extract features
             features = model.extract(video_tensor, batch_sz)
 
@@ -79,6 +85,7 @@ def feature_extraction_videos(model, cores, batch_sz, video_list, output_path):
 
             # save features
             np.save(path, features)
+            print('FEATURES: ', features, output_list)
     np.savetxt('{}/video_feature_list.txt'.format(output_path), output_list, fmt='%s')
 
 
@@ -94,7 +101,7 @@ def feature_extraction_images(model, cores, batch_sz, image_list, output_path):
         image_list: list of image to extract features
         output_path: path to store video features
     """
-    images = [image.strip() for image in open(image_list).readlines()]
+    images = [image.strip() for image in open(image_list, encoding = "ISO-8859-1").readlines()]
     print('\nNumber of images: ', len(images))
     print('Storage directory: ', output_path)
     print('CPU cores: ', cores)
