@@ -78,3 +78,33 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 Giorgos Kordopatis-Zilos (georgekordopatis@iti.gr) <br>
 Symeon Papadopoulos (papadop@iti.gr)
+
+
+## Additional instructions
+
+0. clone fork
+1. Readme in the repo 
+2. Get the network from https://github.com/tensorflow/models/tree/master/research/slim#Pretrained
+
+```bash
+CHECKPOINT_DIR=/tmp/checkpoints
+
+mkdir ${CHECKPOINT_DIR}
+
+wget http://download.tensorflow.org/models/vgg_16_2016_08_28.tar.gz
+
+tar -xvf vgg_16_2016_08_28.tar.gz
+
+mv vgg_16.ckpt ${CHECKPOINT_DIR}
+
+rm vgg_16_2016_08_28.tar.gz
+```
+
+( you might use the working directory: CHECKPOINT_DIR=/[current])
+
+3. pip install --upgrade tf_slim
+4. create directory test
+5. create videos.txt and insert a absolute path to video inside 
+
+6. Python command to extract features 
+python feature_extraction.py --video_list videos.txt --network vgg --framework tensorflow --output_path test --tf_model slim/vgg_16.ckpt
