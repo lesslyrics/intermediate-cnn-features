@@ -29,7 +29,11 @@ This method is also used in:
 from __future__ import division
 
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+import tensorflow as tf2
+import tf_slim as slim
 
 from future.utils import lrange
 
@@ -85,7 +89,7 @@ class CNN_tf():
         vid_processed = preprocess(self.input)
 
         # create the CNN network
-        with tf.contrib.slim.arg_scope(arg_scope):
+        with slim.arg_scope(arg_scope):
             _, net = network(vid_processed, num_classes=None, is_training=False)
 
         # 1. normalize on channel dimension
@@ -115,10 +119,10 @@ class CNN_tf():
             tf_init: variables initializer
         """
         previous_variables = [var_name for var_name, _
-                              in tf.contrib.framework.list_variables(model_ckpt)]
+                              in tf.train.list_variables(model_ckpt)]
         restore_map = {variable.op.name: variable for variable in tf.global_variables()
                        if variable.op.name in previous_variables}
-        tf.contrib.framework.init_from_checkpoint(model_ckpt, restore_map)
+        tf.compat.v1.train.init_from_checkpoint(model_ckpt, restore_map)
         tf_init = tf.global_variables_initializer()
         return tf_init
 
