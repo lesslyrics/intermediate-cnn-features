@@ -105,7 +105,10 @@ rm vgg_16_2016_08_28.tar.gz
 
 ( you might use the working directory: CHECKPOINT_DIR=/[current])
 
-3. pip install --upgrade tf_slim
+3. 
+```bash
+pip install --upgrade tf_slim
+```
 4. create directory test
 5. create videos.txt and insert a absolute path to video inside 
 
