@@ -84,7 +84,7 @@ Symeon Papadopoulos (papadop@iti.gr)
 
 0. clone fork
 1. Readme in the repo 
-2. Get the network from https://github.com/tensorflow/models/tree/master/research/slim#Pretrained
+2. Get the network from https://github.com/tensorflow/models/tree/master/research/slim#Pretrained:
 
 ```bash
 CHECKPOINT_DIR=/tmp/checkpoints
