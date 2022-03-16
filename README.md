@@ -82,8 +82,11 @@ Symeon Papadopoulos (papadop@iti.gr)
 
 ## Additional instructions
 
-0. clone fork
-1. Readme in the repo 
+0. clone fork + create virtual env (optional)
+1. Install all dependencies:
+```bash
+pip install -r requirements.txt
+```
 2. Get the network from https://github.com/tensorflow/models/tree/master/research/slim#Pretrained:
 
 ```bash
