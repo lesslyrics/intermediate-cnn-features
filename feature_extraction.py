@@ -24,6 +24,23 @@ from tqdm import tqdm
 from future.utils import lrange
 from multiprocessing import Pool
 from utils import load_video, load_image
+import boto3
+import os
+
+
+def upload_to_s3(filename):
+    SECRET_KEY = ''
+    ACCESS_KEY = ''
+    s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY,
+                      aws_secret_access_key=SECRET_KEY)
+    abs_path = os.path.abspath(filename)
+
+    s3.upload_file(
+        Filename=abs_path,
+        Bucket="testbucket-1h",
+        Key="features.npy",
+    )
+
 
 
 def feature_extraction_videos(model, cores, batch_sz, video_list, output_path):
@@ -38,8 +55,8 @@ def feature_extraction_videos(model, cores, batch_sz, video_list, output_path):
         video_list: list of video to extract features
         output_path: path to store video features
     """
-    #open('video_list', encoding = "ISO-8859-1")
-    #videos = {i: video.strip() for i, video in enumerate(open(video_list, encoding="latin-1").readlines())}
+    # open('video_list', encoding = "ISO-8859-1")
+    # videos = {i: video.strip() for i, video in enumerate(open(video_list, encoding="latin-1").readlines())}
     videos = {i: video.strip() for i, video in enumerate(open(video_list).readlines())}
 
     print('\nNumber of videos: ', len(videos))
@@ -55,7 +72,7 @@ def feature_extraction_videos(model, cores, batch_sz, video_list, output_path):
     print('KEYS', list(videos.keys()))
     pbar = tqdm(lrange(np.max(list(videos.keys())) + 1), mininterval=1.0, unit='videos')
     for video in pbar:
-        print('VIDEO', videos[video], os.path.exists(videos[video]) )
+        print('VIDEO', videos[video], os.path.exists(videos[video]))
         if os.path.exists(videos[video]):
             print('TRUE:', videos[video])
             video_name = os.path.splitext(os.path.basename(videos[video]))[0]
@@ -71,7 +88,7 @@ def feature_extraction_videos(model, cores, batch_sz, video_list, output_path):
                     if len(future_videos) else video + 1
 
                 if next_video in videos and \
-                    next_video not in future_videos and \
+                        next_video not in future_videos and \
                         os.path.exists(videos[next_video]):
                     future_videos[next_video] = pool.apply_async(load_video,
                                                                  args=[videos[next_video], model.desired_size])
@@ -86,6 +103,8 @@ def feature_extraction_videos(model, cores, batch_sz, video_list, output_path):
             # save features
             np.save(path, features)
             print('FEATURES: ', features, output_list)
+            print('path ', path)
+            upload_to_s3(path + '.npy')
     np.savetxt('{}/video_feature_list.txt'.format(output_path), output_list, fmt='%s')
 
 
@@ -101,7 +120,7 @@ def feature_extraction_images(model, cores, batch_sz, image_list, output_path):
         image_list: list of image to extract features
         output_path: path to store video features
     """
-    images = [image.strip() for image in open(image_list, encoding = "ISO-8859-1").readlines()]
+    images = [image.strip() for image in open(image_list, encoding="ISO-8859-1").readlines()]
     print('\nNumber of images: ', len(images))
     print('Storage directory: ', output_path)
     print('CPU cores: ', cores)
@@ -116,7 +135,7 @@ def feature_extraction_images(model, cores, batch_sz, image_list, output_path):
 
         # load images in parallel
         future = []
-        for image in images[batch * batch_sz: (batch+1) * batch_sz]:
+        for image in images[batch * batch_sz: (batch + 1) * batch_sz]:
             future += [pool.apply_async(load_image, args=[image, model.desired_size])]
 
         image_tensor = []
@@ -167,6 +186,7 @@ if __name__ == '__main__':
         elif '.ckpt' not in args['tf_model']:
             raise Exception('--tf_model argument is not a .ckpt file.')
         from model_tf import CNN_tf
+
         model = CNN_tf(args['network'].lower(), args['tf_model'])
     elif args['framework'].lower() in ['cf', 'caffe']:
         print('Selected framework: Caffe')
@@ -180,6 +200,7 @@ if __name__ == '__main__':
             raise Exception('--caffemodel is not a .caffemodel file')
 
         from model_caffe import CNN_caffe
+
         model = CNN_caffe(args['network'].lower(), args['prototxt'], args['caffemodel'])
     else:
         raise Exception('--framework is invalid. Only Caffe and Tensorflow frameworks are supported')
@@ -195,3 +216,5 @@ if __name__ == '__main__':
                                   args['image_list'], args['output_path'])
     else:
         raise Exception('No --video_list or --image_list is given')
+
+

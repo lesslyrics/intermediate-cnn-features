@@ -26,6 +26,7 @@ RUN tar -xvf vgg_16_2016_08_28.tar.gz
 
 RUN pip install tensorflow
 RUN pip install --upgrade tf_slim
+RUN pip install boto3
 
 RUN mkdir test
 
